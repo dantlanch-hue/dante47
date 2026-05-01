@@ -1,0 +1,26 @@
+# OS / Editor
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.*
+
+# Dependency folders (if added later)
+node_modules/
+
+# Build / cache folders (if added later)
+dist/
+build/
+.cache/
+
+# IDE
+.vscode/
+.idea/
