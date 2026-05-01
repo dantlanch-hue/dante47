@@ -24,3 +24,9 @@ build/
 # IDE
 .vscode/
 .idea/
+
+# Firebase CLI
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
