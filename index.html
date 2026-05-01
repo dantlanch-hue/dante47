@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CANNATEK | Premium Vapes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+</head>
+<body>
+    <div id="loader"><div class="spinner"></div></div>
+
+    <nav class="apple-nav">
+        <div class="nav-content">
+            <div class="logo" onclick="location.reload()">CANNATEK</div>
+            <div id="apple-cart" onclick="toggleCart()">
+                <svg width="19" height="21" viewBox="0 0 19 21" fill="none"><path d="M15.5 6H14V5.5C14 3.01472 11.9853 1 9.5 1C7.01472 1 5 3.01472 5 5.5V6H3.5C2.11929 6 1 7.11929 1 8.5V17.5C1 18.8807 2.11929 20 3.5 20H15.5C16.8807 20 18 18.8807 18 17.5V8.5C18 7.11929 16.8807 6 15.5 6ZM6.5 5.5C6.5 3.84315 7.84315 2.5 9.5 2.5C11.1569 2.5 12.5 3.84315 12.5 5.5V6H6.5V5.5ZM16.5 17.5C16.5 18.0523 16.0523 18.5 15.5 18.5H3.5C2.94772 18.5 2.5 18.0523 2.5 17.5V8.5C2.5 7.94772 2.94772 7.5 3.5 7.5H15.5C16.0523 7.5 16.5 7.94772 16.5 8.5V17.5Z" fill="white"/></svg>
+                <span id="cart-count" class="badge">0</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="localnav">
+        <ul class="filter-list">
+            <li onclick="filtrar('todas', event)" class="filter-btn active">Todas</li>
+            <li onclick="filtrar('Sluggers', event)" class="filter-btn">Sluggers</li>
+            <li onclick="filtrar('Pack Man', event)" class="filter-btn">Pack Man</li>
+            <li onclick="filtrar('Dozo', event)" class="filter-btn">Dozo</li>
+            <li onclick="filtrar('Big Chief', event)" class="filter-btn">Big Chief Duo</li>
+            <li onclick="filtrar('ELF THC', event)" class="filter-btn">ELF THC</li>
+            <li onclick="filtrar('Death Row', event)" class="filter-btn">Death Row</li>
+        </ul>
+    </div>
+    <p style="color:var(--text-secondary); font-size:13px; text-align:center; padding:12px 22px 0;">Stock en tiempo real. Compra verificada por Gmail y confirmacion directa por WhatsApp.</p>
+
+    <main id="catalogo" class="product-grid"></main>
+    <section class="brand-proof-wrap">
+        <div class="brand-proof-grid">
+            <article class="brand-proof-card">
+                <h3>Compra segura</h3>
+                <p>Verificación por Gmail + confirmación por WhatsApp para asegurar pedidos reales.</p>
+            </article>
+            <article class="brand-proof-card">
+                <h3>Atención rápida</h3>
+                <p>Respuesta humana en minutos para coordinar entrega y resolver dudas al instante.</p>
+            </article>
+            <article class="brand-proof-card">
+                <h3>Stock actualizado</h3>
+                <p>Catálogo conectado en tiempo real para evitar demoras, faltantes y cambios sorpresivos.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="social-proof-wrap">
+        <h2>Clientes que vuelven a elegir CANNATEK</h2>
+        <div class="testimonial-grid">
+            <article class="testimonial-card">
+                <p>"Pedí, validé y cerré todo en minutos. Fluido y sin vueltas."</p>
+                <span>Cliente verificado - San Miguel</span>
+            </article>
+            <article class="testimonial-card">
+                <p>"Excelente coordinación por WhatsApp y entrega en tiempo real."</p>
+                <span>Cliente verificado - Bella Vista</span>
+            </article>
+            <article class="testimonial-card">
+                <p>"Se nota el nivel premium en el proceso completo, de punta a punta."</p>
+                <span>Cliente verificado - Muñiz</span>
+            </article>
+        </div>
+    </section>
+
+    <section class="faq-wrap">
+        <h2>Preguntas frecuentes</h2>
+        <details class="faq-item">
+            <summary>¿Por qué piden verificación por Gmail?</summary>
+            <div class="faq-content">
+                <p>Para validar compradores reales, evitar pedidos falsos y acelerar la coordinación final.</p>
+                <p class="faq-cta-line">Listo para avanzar? Sumá tus productos y finalizá tu compra segura.</p>
+            </div>
+        </details>
+        <details class="faq-item">
+            <summary>¿Cómo confirmo mi pedido?</summary>
+            <div class="faq-content">
+                <p>Completás tus datos en checkout y confirmás por WhatsApp con el resumen del pedido.</p>
+                <p class="faq-cta-line">En menos de 2 minutos podés dejar tu pedido confirmado.</p>
+            </div>
+        </details>
+        <details class="faq-item">
+            <summary>¿Puedo pagar en efectivo o transferencia?</summary>
+            <div class="faq-content">
+                <p>Sí. Podés elegir efectivo al recibir o transferencia, según disponibilidad.</p>
+                <p class="faq-cta-line">Elegí tu método y reservá hoy para asegurar disponibilidad.</p>
+            </div>
+        </details>
+        <details class="faq-item">
+            <summary>¿Las zonas y sabores están actualizados?</summary>
+            <div class="faq-content">
+                <p>Sí. El catálogo se actualiza en tiempo real para mostrar stock y opciones disponibles.</p>
+                <p class="faq-cta-line">Si ya elegiste sabor, agregalo ahora y confirmá por WhatsApp.</p>
+            </div>
+        </details>
+    </section>
+
+    <div id="cart-panel" class="cart-panel">
+        <div class="cart-header" style="padding:32px 24px; display:flex; justify-content:space-between; align-items:center; border-bottom:0.5px solid var(--border-color);">
+            <h2 style="font-size:20px;">Tu Bolsa</h2>
+            <button onclick="toggleCart()" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;">✕</button>
+        </div>
+        <div id="cart-content" class="cart-items-container"></div>
+        <div class="cart-footer" style="padding:32px 24px; border-top:0.5px solid var(--border-color);">
+            <div style="display:flex; justify-content:space-between; font-size:20px; font-weight:600; margin-bottom:25px;">
+                <span>Total</span><span>$<span id="cart-total">0</span></span>
+            </div>
+            <p style="color:var(--text-secondary); font-size:13px; margin-bottom:14px;">Tu pedido se valida por Gmail para asegurar una entrega real y segura.</p>
+            <button onclick="iniciarProcesoCheckout()" class="buy-btn shimmer">Finalizar compra segura</button>
+        </div>
+    </div>
+
+    <div id="overlay" onclick="toggleCart()"></div>
+
+    <script src="js/main.js" defer></script>
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyCBuZSWiQMVuihHmuHf7mWbf8XNTh25eZU", authDomain: "cannatek-admin.firebaseapp.com", databaseURL: "https://cannatek-admin-default-rtdb.firebaseio.com/", projectId: "cannatek-admin", storageBucket: "cannatek-admin.firebasestorage.app", messagingSenderId: "640098788308", appId: "1:640098788308:web:d6bceb34d77e9975b12c41" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let productosGlobal = [];
+        let productosListener = null;
+        const PRODUCT_3D_CONFIG = {
+            maxRotate: 16,
+            scaleActive: 1.06,
+            glowSize: 150,
+            glowOpacity: 0.55,
+            transitionMs: 140
+        };
+        const PRODUCT_PAGE_MAP = {
+            deathrow: 'deathrowrecords.html',
+            deathrowrecords: 'deathrowrecords.html',
+            elfthc: 'elfthc.html',
+            bigchief: 'bigchief.html',
+            packman: 'packman.html',
+            sluggers: 'sluggers.html',
+            dozo: 'dozo.html'
+        };
+        const PRODUCT_PAGES_DISPONIBLES = new Set(Object.values(PRODUCT_PAGE_MAP));
+
+        function normalizarSlugMarca(marca) {
+            return String(marca || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, '');
+        }
+
+        function obtenerUrlProducto(marca) {
+            const slug = normalizarSlugMarca(marca);
+            const urlMapeada = PRODUCT_PAGE_MAP[slug];
+            if (urlMapeada) return urlMapeada;
+            const urlGenerada = `${slug}.html`;
+            if (PRODUCT_PAGES_DISPONIBLES.has(urlGenerada)) return urlGenerada;
+            return 'index.html';
+        }
+
+        function mostrarErrorCatalogo(mensaje) {
+            const container = document.getElementById('catalogo');
+            container.innerHTML = `
+                <div style="grid-column:1/-1; text-align:center; padding:20px;">
+                    <p style="color:var(--text-secondary); font-size:16px; margin-bottom:14px;">${mensaje}</p>
+                    <button class="buy-btn" style="max-width:240px;" onclick="reintentarCargaProductos()">Reintentar</button>
+                </div>`;
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        function suscribirProductos() {
+            const productosRef = db.ref('productos');
+            productosRef.off('value', productosListener);
+            productosListener = (snap) => {
+                productosGlobal = [];
+                snap.forEach(child => { let p = child.val(); p.id = child.key; productosGlobal.push(p); });
+                renderizar(productosGlobal);
+                document.getElementById('loader').style.display = 'none';
+            };
+            productosRef.on('value', productosListener, (error) => {
+                console.error('Error al cargar productos desde Firebase:', error);
+                mostrarErrorCatalogo('No se pudieron cargar los productos. Revisa tu conexion e intenta nuevamente.');
+            });
+        }
+
+        function reintentarCargaProductos() {
+            document.getElementById('loader').style.display = 'flex';
+            suscribirProductos();
+        }
+
+        suscribirProductos();
+
+        function renderizar(lista) {
+            const container = document.getElementById('catalogo');
+            container.classList.toggle('single-product-view', lista.length === 1);
+            if (!lista.length) {
+                container.innerHTML = '<p style="color:var(--text-secondary); font-size:16px; text-align:center; grid-column:1/-1;">No hay productos disponibles por el momento.</p>';
+                return;
+            }
+            const escapeHtml = (str) => String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+            container.innerHTML = lista.map((p, index) => {
+                const marcaURL = obtenerUrlProducto(p.marca);
+                const saboresLista = p.sabores && p.sabores.length ? p.sabores : ['Único'];
+                const primerSabor = escapeHtml(saboresLista[0]);
+                const sabores = saboresLista.map(s => {
+                    const safeSabor = escapeHtml(s);
+                    return `<option value="${safeSabor}">${safeSabor}</option>`;
+                }).join('');
+                const saboresCustom = saboresLista.map((s, flavorIndex) => {
+                    const safeSabor = escapeHtml(s);
+                    return `<li class="flavor-option ${flavorIndex === 0 ? 'active' : ''}" data-value="${safeSabor}" role="option" aria-selected="${flavorIndex === 0 ? 'true' : 'false'}">${safeSabor}</li>`;
+                }).join('');
+                return `
+                    <div class="product-card" style="animation-delay: ${index * 0.1}s">
+                        <div class="img-container" onclick="window.location.href='${marcaURL}'">
+                            <img src="${p.img || 'assets/placeholder.svg'}" alt="${p.marca || 'Producto CANNATEK'}" onerror="this.src='assets/placeholder.svg'">
+                        </div>
+                        <div class="p-info">
+                            <span style="color:var(--accent-color); font-size:11px; font-weight:700; text-transform:uppercase;">${p.marca}</span>
+                            <h3 class="p-title">${p.modelo || 'Premium Vape'}</h3>
+                            <div class="flavor-select" data-product-id="${p.id}">
+                                <button type="button" class="flavor-trigger" aria-haspopup="listbox" aria-expanded="false">${primerSabor}</button>
+                                <ul class="flavor-menu" role="listbox">${saboresCustom}</ul>
+                                <select id="sabor-${p.id}" class="apple-select-native" aria-hidden="true" tabindex="-1">${sabores}</select>
+                            </div>
+                            <p class="p-price">$${p.precio ? p.precio.toLocaleString('es-AR') : '0'}</p>
+                            <button class="buy-btn shimmer" onclick="prepararCarrito('${p.id}')">Agregar y reservar ahora</button>
+                        </div>
+                    </div>`;
+            }).join('');
+            setTimeout(() => document.querySelectorAll('.product-card').forEach(c => c.classList.add('visible')), 50);
+            inicializarFlavorDropdowns();
+            inicializarProducto3D();
+        }
+
+        function filtrar(cat, e) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            const res = cat === 'todas' ? productosGlobal : productosGlobal.filter(p => p.marca.toLowerCase().includes(cat.toLowerCase()));
+            renderizar(res);
+        }
+
+        function inicializarFaqAccordion() {
+            const items = document.querySelectorAll('.faq-item');
+            items.forEach((item) => {
+                item.addEventListener('toggle', () => {
+                    if (!item.open) return;
+                    items.forEach((otherItem) => {
+                        if (otherItem !== item) otherItem.open = false;
+                    });
+                });
+            });
+        }
+
+        function prepararCarrito(id) {
+            const p = productosGlobal.find(x => x.id === id);
+            if (!p) return;
+            const s = document.getElementById(`sabor-${id}`).value;
+            if (typeof agregarAlCarrito === 'function') agregarAlCarrito(p, s);
+        }
+
+        function cerrarTodosLosMenusFlavor() {
+            document.querySelectorAll('.flavor-select.open').forEach(select => {
+                select.classList.remove('open');
+                const trigger = select.querySelector('.flavor-trigger');
+                if (trigger) trigger.setAttribute('aria-expanded', 'false');
+                const card = select.closest('.product-card');
+                if (card) card.classList.remove('dropdown-active');
+            });
+        }
+
+        function inicializarFlavorDropdowns() {
+            document.querySelectorAll('.flavor-select').forEach(select => {
+                const trigger = select.querySelector('.flavor-trigger');
+                const nativeSelect = select.querySelector('.apple-select-native');
+                const options = select.querySelectorAll('.flavor-option');
+                if (!trigger || !nativeSelect || !options.length) return;
+
+                trigger.onclick = (event) => {
+                    event.stopPropagation();
+                    const isOpen = select.classList.contains('open');
+                    cerrarTodosLosMenusFlavor();
+                    if (!isOpen) {
+                        select.classList.add('open');
+                        trigger.setAttribute('aria-expanded', 'true');
+                        const card = select.closest('.product-card');
+                        if (card) card.classList.add('dropdown-active');
+                    }
+                };
+
+                options.forEach(option => {
+                    option.onclick = (event) => {
+                        event.stopPropagation();
+                        const value = option.getAttribute('data-value') || option.textContent.trim();
+                        trigger.textContent = value;
+                        nativeSelect.value = value;
+                        options.forEach(opt => {
+                            opt.classList.remove('active');
+                            opt.setAttribute('aria-selected', 'false');
+                        });
+                        option.classList.add('active');
+                        option.setAttribute('aria-selected', 'true');
+                        select.classList.remove('open');
+                        trigger.setAttribute('aria-expanded', 'false');
+                        const card = select.closest('.product-card');
+                        if (card) card.classList.remove('dropdown-active');
+                    };
+                });
+            });
+        }
+
+        function inicializarProducto3D() {
+            const { maxRotate, scaleActive, glowSize, glowOpacity, transitionMs } = PRODUCT_3D_CONFIG;
+            document.querySelectorAll('.img-container').forEach(container => {
+                const img = container.querySelector('img');
+                if (!img) return;
+                container.style.setProperty('--glow-size', `${glowSize}px`);
+                container.style.setProperty('--glow-opacity', String(glowOpacity));
+                container.style.setProperty('--tilt-transition', `${transitionMs}ms`);
+
+                const reset = () => {
+                    img.style.transform = '';
+                    container.classList.remove('img-tilting');
+                };
+
+                container.onmousemove = (event) => {
+                    if (window.matchMedia('(max-width: 900px)').matches) return;
+                    const rect = container.getBoundingClientRect();
+                    const x = event.clientX - rect.left;
+                    const y = event.clientY - rect.top;
+                    const px = (x / rect.width) * 2 - 1;
+                    const py = (y / rect.height) * 2 - 1;
+                    const rotateY = px * maxRotate;
+                    const rotateX = py * -maxRotate;
+
+                    container.style.setProperty('--mouse-x', `${x.toFixed(1)}px`);
+                    container.style.setProperty('--mouse-y', `${y.toFixed(1)}px`);
+                    img.style.transform = `rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale(${scaleActive})`;
+                    container.classList.add('img-tilting');
+                };
+
+                container.onmouseleave = reset;
+            });
+        }
+
+        document.addEventListener('click', cerrarTodosLosMenusFlavor);
+        inicializarFaqAccordion();
+    </script>
+</body>
+</html>

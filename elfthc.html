@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELF THC | CANNATEK Premium</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        :root { --accent: #00ff41; }
+        body { background-color: #000; color: #fff; margin: 0; font-family: 'SF Pro Display', sans-serif; overflow-x: hidden; }
+        
+        .product-page { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; align-items: center; padding: 40px 8%; gap: 50px; }
+        .image-section img { width: 50%; max-width: 320px; filter: drop-shadow(0 0 20px rgba(0, 255, 65, 0.3)); animation: float-elf 5s ease-in-out infinite; }
+        @keyframes float-elf { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+
+        .info-section { z-index: 2; padding-left: 60px; }
+        .back-link { color: var(--accent); text-decoration: none; letter-spacing: 2px; display: inline-block; margin-bottom: 30px; text-transform: uppercase; font-size: 13px; }
+        h1 { font-size: 5rem; margin: 10px 0; letter-spacing: -3px; line-height: 0.9; text-transform: uppercase; }
+        .price { font-size: 2.5rem; font-weight: 700; margin: 20px 0; }
+        .description { color: #86868b; font-size: 18px; line-height: 1.6; margin-bottom: 30px; max-width: 450px; }
+        
+        select.sabor-select-large { width: 100%; max-width: 400px; background: #111; border: 1px solid #333; color: #fff; padding: 18px; border-radius: 14px; margin-bottom: 40px; font-size: 16px; outline: none; }
+        .btn-compra { background: var(--accent); color: #000; border: none; padding: 22px; font-size: 1.2rem; font-weight: 800; border-radius: 14px; cursor: pointer; width: 100%; max-width: 400px; text-transform: uppercase; transition: 0.3s; }
+
+        /* SIDEBAR STYLES */
+        .cart-sidebar { position: fixed; right: -400px; top: 0; width: 350px; height: 100%; background: #111; z-index: 2000; transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: -10px 0 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; }
+        .cart-sidebar.open { right: 0; }
+        .cart-header { padding: 25px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+        .close-cart { background: none; border: none; color: #fff; font-size: 35px; cursor: pointer; }
+        .cart-items-body { flex: 1; overflow-y: auto; padding: 20px; }
+        .cart-footer { padding: 25px; border-top: 1px solid #222; background: #0a0a0a; }
+
+        /* Selector de unidades dentro del carrito */
+        .qty-selector { display: flex; align-items: center; gap: 10px; background: #222; border-radius: 8px; padding: 5px 10px; width: fit-content; margin-top: 10px; }
+        .qty-btn { background: none; border: none; color: var(--accent); font-size: 18px; font-weight: bold; cursor: pointer; padding: 0 5px; }
+        .qty-num { font-size: 14px; font-weight: bold; min-width: 20px; text-align: center; }
+
+        .cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; z-index: 1500; }
+        .cart-overlay.show { display: block; }
+        .btn-checkout { width: 100%; background: var(--accent); color: #000; border: none; padding: 18px; border-radius: 12px; font-weight: 900; cursor: pointer; text-transform: uppercase; }
+
+        @media (max-width: 900px) { 
+            .product-page { grid-template-columns: 1fr; text-align: center; padding: 200px 5%; } 
+            .info-section { padding-left: 5; }
+            .cart-sidebar { width: 50%; right: -50%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="product-page">
+        <div class="image-section"><img src="assets/elfthc.png" alt="ELF THC 1G"></div>
+        <div class="info-section">
+            <a href="index.html" class="back-link">← Volver al Catálogo</a>
+            <h1>ELF<br>THC</h1>
+            <p style="color: #86868b; font-size: 1.3rem;">Premium Distillate • 1G</p>
+            <p class="price">$50.000</p>
+            <p class="description">Diseño compacto, potencia pura. El ELF THC de 1G utiliza la exclusiva Eldarin Blend para ofrecer caladas suaves e intensas.</p>
+            <select class="sabor-select-large" id="sabor-elf">
+                <option value="California Lemon Hash (Sativa)">California Lemon Hash (Sativa)</option>
+                <option value="Lemon Drip (Índica)">Lemon Drip (Índica)</option>
+                <option value="Electric Lotus (Índica)"> Electric Lotus (Índica)</option>
+                <option value="Purple Voodoo (Híbrida)">Purple Voodoo (Híbrida)</option>
+            </select>
+            <button class="btn-compra" onclick="comprarElf()">Añadir al carrito</button>
+        </div>
+    </div>
+
+    <div id="cart-sidebar" class="cart-sidebar">
+        <div class="cart-header"><h2>Tu Bolsa</h2><button onclick="toggleCart()" class="close-cart">&times;</button></div>
+        <div id="cart-items-container" class="cart-items-body"></div>
+        <div class="cart-footer">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 25px; font-weight: bold; font-size: 1.2rem;">
+                <span>Total:</span><span id="cart-total-sidebar">$0</span>
+            </div>
+            <button class="btn-checkout" onclick="window.location.href='checkout.html'">Finalizar Pedido</button>
+        </div>
+    </div>
+    <div id="cart-overlay" class="cart-overlay" onclick="toggleCart()"></div>
+
+    <script src="js/flavor-dropdown.js"></script>
+    <script>
+        function toggleCart() {
+            document.getElementById('cart-sidebar').classList.toggle('open');
+            document.getElementById('cart-overlay').classList.toggle('show');
+            actualizarVistaCarrito();
+        }
+
+        function actualizarVistaCarrito() {
+            const container = document.getElementById('cart-items-container');
+            const totalEl = document.getElementById('cart-total-sidebar');
+            let carrito = JSON.parse(localStorage.getItem('cart')) || [];
+            container.innerHTML = '';
+            let total = 0;
+
+            if (carrito.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#555; margin-top:50px;">Tu bolsa está vacía</p>';
+            }
+
+            carrito.forEach((item, index) => {
+                total += item.precio * item.cantidad;
+                container.innerHTML += `
+                    <div style="display: flex; gap: 15px; margin-bottom: 25px; align-items: center; border-bottom: 1px solid #222; padding-bottom: 15px;">
+                        <img src="${item.img}" width="50" style="border-radius: 8px;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; font-size: 13px; text-transform: uppercase;">${item.marca}</div>
+                            <div style="color: #86868b; font-size: 11px;">${item.sabor}</div>
+                            <div class="qty-selector">
+                                <button class="qty-btn" onclick="cambiarCantidad(${index}, -1)">-</button>
+                                <span class="qty-num">${item.cantidad}</span>
+                                <button class="qty-btn" onclick="cambiarCantidad(${index}, 1)">+</button>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="color: var(--accent); font-weight: bold;">$${(item.precio * item.cantidad).toLocaleString()}</div>
+                            <button onclick="eliminarDelCarrito(${index})" style="background:none; border:none; color:#ff4444; cursor:pointer; font-size:14px; margin-top:10px;">Eliminar</button>
+                        </div>
+                    </div>`;
+            });
+            totalEl.innerText = `$${total.toLocaleString()}`;
+        }
+
+        function cambiarCantidad(index, delta) {
+            let carrito = JSON.parse(localStorage.getItem('cart')) || [];
+            carrito[index].cantidad += delta;
+            if (carrito[index].cantidad <= 0) {
+                carrito.splice(index, 1);
+            }
+            localStorage.setItem('cart', JSON.stringify(carrito));
+            actualizarVistaCarrito();
+        }
+
+        function eliminarDelCarrito(index) {
+            let carrito = JSON.parse(localStorage.getItem('cart')) || [];
+            carrito.splice(index, 1);
+            localStorage.setItem('cart', JSON.stringify(carrito));
+            actualizarVistaCarrito();
+        }
+
+        function comprarElf() {
+            const sabor = document.getElementById('sabor-elf').value;
+            let carritoActual = JSON.parse(localStorage.getItem('cart')) || [];
+            const itemASumar = { id: 5, marca: "ELF THC", precio: 50000, sabor: sabor, cantidad: 1, img: "assets/elfthc.png" };
+            const existe = carritoActual.find(item => item.id === itemASumar.id && item.sabor === sabor);
+            if (existe) { existe.cantidad++; } else { carritoActual.push(itemASumar); }
+            localStorage.setItem('cart', JSON.stringify(carritoActual));
+            toggleCart(); 
+        }
+    </script>
+</body>
+</html>

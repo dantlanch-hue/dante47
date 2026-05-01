@@ -1,0 +1,58 @@
+Este archivo te permite gestionar el stock, editar precios y ocultar productos sin borrar el código, con el mismo diseño premium
+.
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin | CANNATEK</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+</head>
+<body class="admin-page">
+    <div class="admin-container">
+        <h2>🛠️ Gestión de Inventario</h2>
+        <div class="admin-card">
+            <h3>Cargar Nuevo Producto</h3>
+            <div class="form-grid">
+                <input type="text" id="m-marca" placeholder="Marca (ej: Sluggers)">
+                <input type="text" id="m-modelo" placeholder="Modelo (ej: Live Rosin)">
+                <input type="number" id="m-precio" placeholder="Precio ($)">
+                <input type="text" id="m-img" placeholder="Ruta Imagen (assets/foto.png)">
+                <textarea id="m-sabores" placeholder="Sabores separados por coma (Sabor A, Sabor B)"></textarea>
+                <button class="buy-btn" onclick="guardarProducto()">Guardar en Tienda</button>
+            </div>
+        </div>
+        <div class="admin-card">
+            <h3>Productos Actuales</h3>
+            <div id="lista-admin"></div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = { /* Tus credenciales aquí */ };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function guardarProducto() {
+            const data = {
+                marca: document.getElementById('m-marca').value,
+                modelo: document.getElementById('m-modelo').value,
+                precio: parseInt(document.getElementById('m-precio').value),
+                img: document.getElementById('m-img').value,
+                sabores: document.getElementById('m-sabores').value.split(',').map(s => s.trim())
+            };
+            db.ref('productos').push(data).then(() => location.reload());
+        }
+
+        db.ref('productos').on('value', snap => {
+            const list = document.getElementById('lista-admin');
+            list.innerHTML = "";
+            snap.forEach(child => {
+                const p = child.val();
+                list.innerHTML += `<div class="admin-item-row"><span>${p.marca} - ${p.modelo}</span><button onclick="db.ref('productos/${child.key}').remove()">Eliminar</button></div>`;
+            });
+        });
+    </script>
+</body>
+</html>

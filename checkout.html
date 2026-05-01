@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar Compra | CANNATEK</title>
+    <!-- Tipografía Inter (Estilo Apple) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        /* BLINDAJE ESTÉTICO INTERNO (Para asegurar que se vea Pro sí o sí) */
+        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; margin: 0; }
+        
+        .auth-section { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 5000; }
+        .auth-card { 
+            background: rgba(28, 28, 30, 0.8); backdrop-filter: blur(25px) saturate(150%);
+            border: 0.5px solid rgba(255,255,255,0.1); padding: 40px; border-radius: 32px; 
+            text-align: center; max-width: 400px; width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        .auth-step { opacity: 0; transform: translateY(6px) scale(0.985); transition: opacity 0.22s ease, transform 0.22s ease; }
+        .auth-step.active { opacity: 1; transform: translateY(0) scale(1); }
+        
+        .checkout-wrapper { display: none; opacity: 0; max-width: 1100px; margin: 0 auto; padding: 60px 20px; transition: opacity 0.8s; }
+        .checkout-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; }
+        
+        .apple-label { font-size: 11px; font-weight: 600; color: var(--accent-color); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: block; }
+        .apple-input-pro { width: 100%; background: #1c1c1e; border: 0.5px solid #333; border-radius: 12px; padding: 16px; color: #fff; font-size: 16px; outline: none; margin-bottom: 20px; box-sizing: border-box; }
+        .apple-input-pro:focus { border-color: var(--accent-color); }
+        .delivery-mode-wrap { margin-bottom: 22px; }
+        .delivery-mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .delivery-option {
+            border: 0.5px solid var(--border-color);
+            background: rgba(255,255,255,0.02);
+            border-radius: 14px;
+            padding: 14px;
+            cursor: pointer;
+            transition: border-color 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+        }
+        .delivery-option:hover { border-color: rgba(255,255,255,0.24); transform: translateY(-1px); }
+        .delivery-option.active {
+            border-color: var(--accent-color);
+            background: rgba(0,255,95,0.08);
+        }
+        .delivery-option-title { display: block; font-size: 14px; font-weight: 600; margin-bottom: 4px; color: var(--accent-color); }
+        .delivery-option-note { display: block; font-size: 12px; color: #9a9aa0; line-height: 1.35; }
+        .delivery-hidden { display: none; }
+        #resumen-lista {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.25) transparent;
+        }
+        #resumen-lista::-webkit-scrollbar { height: 6px; }
+        #resumen-lista::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.22);
+            border-radius: 999px;
+        }
+        .resumen-item {
+            min-width: 250px;
+            max-width: 280px;
+            background: rgba(255,255,255,0.03);
+            border: 0.5px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            scroll-snap-align: start;
+        }
+        .resumen-item-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            object-fit: contain;
+            background: rgba(255,255,255,0.03);
+            flex-shrink: 0;
+        }
+        .resumen-item-info { flex: 1; min-width: 0; }
+        .resumen-item-name {
+            font-size: 14px;
+            margin: 0;
+            color: #f5f5f7;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .resumen-item-flavor {
+            font-size: 12px;
+            color: #86868b;
+            margin: 2px 0 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .resumen-item-price {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        
+        .input-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        #btn-confirmar-pedido { min-height: 52px; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        #btn-confirmar-pedido:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0, 255, 95, 0.2); }
+        #checkout-feedback { min-height: 18px; }
+        .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); backdrop-filter: blur(15px); z-index: 6500; display: none; align-items: center; justify-content: center; padding: 18px; }
+        .confirm-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
+        .confirm-card {
+            width: 100%;
+            max-width: 430px;
+            background: rgba(28, 28, 30, 0.94);
+            border: 0.5px solid rgba(255,255,255,0.12);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 24px 50px rgba(0,0,0,0.5);
+            animation: confirmCardIn 0.24s cubic-bezier(0.2, 1, 0.2, 1);
+        }
+        .confirm-title { font-size: 22px; margin: 0 0 8px; font-weight: 600; }
+        .confirm-message { color: #a8a8ad; font-size: 14px; margin: 0 0 16px; line-height: 1.45; }
+        .confirm-detail {
+            background: rgba(255,255,255,0.03);
+            border: 0.5px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 12px;
+            color: #f5f5f7;
+            font-size: 14px;
+            line-height: 1.45;
+            margin-bottom: 16px;
+            white-space: pre-line;
+        }
+        .confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .confirm-btn-secondary {
+            border: 0.5px solid rgba(255,255,255,0.16);
+            background: rgba(255,255,255,0.04);
+            color: #fff;
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        @keyframes confirmCardIn {
+            from { opacity: 0; transform: translateY(8px) scale(0.985); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        #c-nombre, #c-direccion, #c-entre-calles, #c-depto, #c-localidad, #c-vivienda, #c-metodo, #input-email, #input-codigo {
+            min-height: 52px;
+        }
+        
+        @media (max-width: 850px) {
+            .checkout-grid { grid-template-columns: 1fr; }
+            .checkout-wrapper { padding: 28px 14px 110px; }
+            .input-grid-2 { grid-template-columns: 1fr; gap: 10px; }
+            .delivery-mode-grid { grid-template-columns: 1fr; }
+            .card-summary { padding: 20px !important; border-radius: 20px !important; }
+            .resumen-item { min-width: 220px; max-width: 240px; }
+            #btn-confirmar-pedido {
+                position: sticky;
+                bottom: 12px;
+                z-index: 20;
+                width: 100%;
+            }
+            #checkout-feedback { margin-bottom: 4px; }
+        }
+    </style>
+</head>
+<body class="checkout-page">
+    <nav class="apple-nav"><div class="nav-content"><div class="logo">CANNATEK</div></div></nav>
+
+    <!-- 1. PANTALLA DE AUTENTICACIÓN (GLASSMORPISM) -->
+    <div id="auth-section" class="auth-section">
+        <div class="auth-card">
+            <div id="step-email" class="auth-step active">
+                <h2 style="font-size: 24px; margin-bottom: 12px;">Verificá tu identidad</h2>
+                <p style="color: #86868b; font-size: 14px; margin-bottom: 25px;">Ingresá tu Gmail para recibir un código de acceso único. Solo aceptamos cuentas Gmail para mantener pedidos reales y seguros.</p>
+                <input type="email" id="input-email" placeholder="ejemplo@gmail.com" class="apple-input-pro" style="text-align: center;">
+                <button class="buy-btn" onclick="enviarCodigo()">Enviar codigo seguro</button>
+            </div>
+            <div id="step-code" class="auth-step" style="display: none;">
+                <h2 style="font-size: 24px; margin-bottom: 12px;">Código enviado</h2>
+                <p id="step-code-text" style="color: #86868b; font-size: 14px; margin-bottom: 20px;">Revisá tu Gmail y completá el acceso para continuar con tu compra.</p>
+                <input type="text" id="input-codigo" placeholder="0 0 0 0 0 0" class="apple-input-pro" style="text-align: center; font-size: 28px; letter-spacing: 5px; font-weight: 700;">
+                <button id="btn-verificar-acceso" class="buy-btn" onclick="verificarCodigo()">Verificar Acceso</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. CONTENIDO PRINCIPAL DEL CHECKOUT -->
+    <div id="main-checkout-content" class="checkout-wrapper">
+        <h1 style="font-size: 40px; margin-bottom: 12px; font-weight: 600;">Finalizá tu pedido seguro en 2 minutos.</h1>
+        <p style="color:var(--text-secondary); font-size:15px; margin-bottom: 16px;">Verificación Gmail + confirmación por WhatsApp para acelerar la entrega y evitar demoras.</p>
+        <p style="color:#a1a1a6; font-size:13px; margin-bottom: 30px;">Atención prioritaria, validación manual y coordinación inmediata con el equipo CANNATEK.</p>
+        <div style="display:flex; gap:10px; margin-bottom:28px; flex-wrap:wrap;">
+            <span id="step-pill-verificacion" style="padding:8px 14px; border-radius:999px; border:0.5px solid var(--accent-color); color:#fff; font-size:12px; background:rgba(0,255,95,0.15);">1. Verificacion</span>
+            <span id="step-pill-datos" style="padding:8px 14px; border-radius:999px; border:0.5px solid var(--border-color); color:var(--text-secondary); font-size:12px; background:transparent;">2. Datos</span>
+            <span id="step-pill-confirmacion" style="padding:8px 14px; border-radius:999px; border:0.5px solid var(--border-color); color:var(--text-secondary); font-size:12px; background:transparent;">3. Confirmacion</span>
+        </div>
+        <div class="checkout-grid">
+            <div class="card-form">
+                <h2 style="font-size: 22px; margin-bottom: 24px; border-bottom: 0.5px solid rgba(8, 250, 49, 0.1); padding-bottom: 12px;">Datos de Entrega</h2>
+                <p style="color:#8e8e93; font-size:13px; margin-top:-10px; margin-bottom:20px;">Completá solo lo necesario para confirmar tu pedido sin demoras.</p>
+                <div class="delivery-mode-wrap">
+                    <label class="apple-label">Modalidad de Entrega</label>
+                    <div class="delivery-mode-grid">
+                        <button type="button" id="delivery-envio" class="delivery-option active" onclick="seleccionarModalidadEntrega('envio')">
+                            <span class="delivery-option-title">Envio a Domicilio Express</span>
+                            <span class="delivery-option-note">Entrega directa en tu domicilio con coordinación por WhatsApp.</span>
+                        </button>
+                        <button type="button" id="delivery-retiro" class="delivery-option" onclick="seleccionarModalidadEntrega('retiro')">
+                            <span class="delivery-option-title">Retiro en Punto Publico</span>
+                            <span class="delivery-option-note">San Miguel Centro. La direccion exacta se comparte por WhatsApp.</span>
+                        </button>
+                    </div>
+                </div>
+
+                <label class="apple-label">Nombre del Receptor</label>
+                <input type="text" id="c-nombre" placeholder="Nombre y Apellido" class="apple-input-pro">
+
+                <div id="bloque-envio" class="delivery-envio-block">
+                <div class="input-grid-2">
+                    <div>
+                        <label class="apple-label">Localidad / Zona</label>
+                        <select id="c-localidad" class="apple-input-pro">
+                            <option value="San Miguel">San Miguel</option>
+                            <option value="Muñiz">Muñiz</option>
+                            <option value="Bella Vista">Bella Vista</option>
+                            <option value="Hurlingham">Hurlingham</option>
+                            <option value="José C. Paz">José C. Paz</option>
+                            <option value="Malvinas Argentinas">Malvinas Argentinas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="apple-label">Tipo de Vivienda</label>
+                        <select id="c-vivienda" class="apple-input-pro">
+                            <option value="Casa">Casa</option>
+                            <option value="Departamento">Departamento</option>
+                            <option value="Local">Local</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label class="apple-label">Dirección (Calle y Número)</label>
+                <input type="text" id="c-direccion" placeholder="Ej: Av. Balbín 1234" class="apple-input-pro">
+
+                <div class="input-grid-2">
+                    <div>
+                        <label class="apple-label">Entre Calles</label>
+                        <input type="text" id="c-entre-calles" placeholder="Ej: Mitre y Belgrano" class="apple-input-pro">
+                    </div>
+                    <div>
+                        <label class="apple-label">Piso / Depto</label>
+                        <input type="text" id="c-depto" placeholder="Opcional" class="apple-input-pro">
+                    </div>
+                </div>
+                </div>
+                <div id="bloque-retiro" class="delivery-hidden" style="margin-bottom:20px;">
+                    <div style="background:rgba(28,28,30,0.85); border:0.5px solid rgba(255,255,255,0.08); border-radius:14px; padding:14px;">
+                        <p style="font-size:14px; margin:0 0 6px; color:#f5f5f7;">Retiro en Punto Publico (San Miguel Centro)</p>
+                        <p style="font-size:12px; margin:0; color:#8e8e93;">La direccion exacta y el punto de encuentro se envian por WhatsApp luego de confirmar.</p>
+                    </div>
+                </div>
+
+                <label class="apple-label">Método de Pago</label>
+                <select id="c-metodo" class="apple-input-pro" onchange="verificarPago(this.value)">
+                    <option value="Efectivo">Efectivo al recibir</option>
+                    <option value="Transferencia">Transferencia (Lemon Cash)</option>
+                </select>
+            </div>
+
+            <!-- RESUMEN TICKET (SAGRADO) -->
+            <div class="card-summary" style="background: #1c1c1e; padding: 32px; border-radius: 28px; height: fit-content;">
+                <h2 style="margin-bottom: 20px; font-size: 22px;">Tu Resumen</h2>
+                <p style="color:var(--text-secondary); font-size:13px; margin-bottom:14px;">Checkout verificado por Gmail + confirmación directa por WhatsApp.</p>
+                <div id="resumen-lista"></div>
+                <div style="display: flex; justify-content: space-between; font-size: 22px; font-weight: 600; margin-top: 30px; border-top: 0.5px solid #333; padding-top: 20px;">
+                    <span>Total</span>
+                    <span id="check-total">$0</span>
+                </div>
+                <button id="btn-confirmar-pedido" class="buy-btn" style="margin-top: 25px; opacity:0.55; cursor:not-allowed;" onclick="confirmarPedidoFinal()" disabled>Completá tus datos para confirmar</button>
+                <p id="checkout-feedback" style="margin-top:10px; font-size:12px; color:#8e8e93;">Ingresá nombre y dirección para habilitar la confirmación.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE TRANSFERENCIA -->
+    <div id="modal-transfer" class="modal-transfer">
+        <div class="modal-content">
+            <h3>Datos Lemon Cash</h3>
+            <p style="color:#86868b; font-size:14px; margin-bottom: 20px;">Realizá la transferencia para procesar tu pedido:</p>
+            <code id="cbu-dato" style="display:block; background:#000; padding:15px; border-radius:12px; color:var(--accent-color); font-size:14px; border:1px solid #333; margin-bottom:20px;">0000003100012345678901</code>
+            <button onclick="copiarCBU()" class="buy-btn" style="background:#2c2c2e; color:#fff; margin-bottom:10px;">Copiar CBU</button>
+            <button class="buy-btn" onclick="document.getElementById('modal-transfer').classList.remove('active')">He realizado el pago</button>
+        </div>
+    </div>
+    <div id="confirm-overlay" class="confirm-overlay">
+        <div class="confirm-card">
+            <h3 id="confirm-title" class="confirm-title">Confirmación</h3>
+            <p id="confirm-message" class="confirm-message"></p>
+            <div id="confirm-detail" class="confirm-detail"></div>
+            <div class="confirm-actions">
+                <button id="confirm-cancel" class="confirm-btn-secondary">Revisar</button>
+                <button id="confirm-accept" class="buy-btn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        emailjs.init("tNcctr9Y9VJCdKVyw");
+        const WS_NUMBER = "5491123629580"; // Número senior corregido [7]
+        let carrito = JSON.parse(localStorage.getItem('cart')) || [];
+        let codigoGenerado = "";
+        let emailVerificado = "";
+        let modalidadEntrega = "envio";
+        let checkoutPasoActual = "verificacion";
+        let modalConfirmacionAbierto = false;
+        let modalConfirmacionListoTeclado = false;
+        let enviandoCodigo = false;
+        const CHECKOUT_EVENT_KEY = "checkout_events";
+        const CTA_VARIANT_KEY = "checkout_cta_variant_v1";
+        let ctaVariant = localStorage.getItem(CTA_VARIANT_KEY);
+
+        if (!ctaVariant) {
+            ctaVariant = Math.random() < 0.5 ? "control" : "urgencia";
+            localStorage.setItem(CTA_VARIANT_KEY, ctaVariant);
+        }
+
+        function registrarEventoCheckout(eventName, meta = {}) {
+            const evento = {
+                event: eventName,
+                ts: new Date().toISOString(),
+                variant: ctaVariant,
+                ...meta
+            };
+            const eventos = JSON.parse(localStorage.getItem(CHECKOUT_EVENT_KEY) || "[]");
+            eventos.push(evento);
+            localStorage.setItem(CHECKOUT_EVENT_KEY, JSON.stringify(eventos));
+            console.info("[checkout-event]", evento);
+        }
+
+        function textoCtaHabilitado() {
+            return ctaVariant === "urgencia"
+                ? "Confirmar ahora y reservar entrega"
+                : "Confirmar pedido seguro por WhatsApp";
+        }
+
+        function generarIdPedido() {
+            const d = new Date();
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mm = String(d.getMinutes()).padStart(2, '0');
+            const rand = Math.floor(1000 + Math.random() * 9000);
+            return `CK-${y}${m}${day}-${hh}${mm}-${rand}`;
+        }
+
+        function formatoFechaPedido() {
+            return new Date().toLocaleString('es-AR', { hour12: false });
+        }
+
+        function aplicarVarianteCta() {
+            const btn = document.getElementById('btn-confirmar-pedido');
+            if (!btn) return;
+            if (!btn.disabled) btn.textContent = textoCtaHabilitado();
+        }
+
+        function detectarProveedorEmail(email) {
+            const domain = (email.split('@')[1] || '').toLowerCase();
+            if (domain.includes('gmail')) return 'Gmail';
+            if (domain.includes('outlook') || domain.includes('hotmail') || domain.includes('live')) return 'Outlook';
+            return 'correo';
+        }
+
+        function mostrarPasoAuth(stepId) {
+            const stepEmail = document.getElementById('step-email');
+            const stepCode = document.getElementById('step-code');
+            const mostrarCode = stepId === 'code';
+            const target = mostrarCode ? stepCode : stepEmail;
+            const other = mostrarCode ? stepEmail : stepCode;
+            if (!target || !other) return;
+            if (target.style.display !== 'none' && target.classList.contains('active')) return;
+
+            other.classList.remove('active');
+            setTimeout(() => {
+                other.style.display = 'none';
+                target.style.display = 'block';
+                requestAnimationFrame(() => target.classList.add('active'));
+            }, 120);
+        }
+
+        function setEstadoEnvioCodigo(enviando) {
+            const stepEmail = document.getElementById('step-email');
+            const stepCode = document.getElementById('step-code');
+            const txt = document.getElementById('step-code-text');
+            const inputCodigo = document.getElementById('input-codigo');
+            const btnVerificar = document.getElementById('btn-verificar-acceso');
+            if (!stepEmail || !stepCode || !txt || !inputCodigo || !btnVerificar) return;
+
+            if (enviando) {
+                mostrarPasoAuth('code');
+                txt.textContent = 'Enviando código seguro a tu Gmail...';
+                inputCodigo.value = '';
+                inputCodigo.disabled = true;
+                btnVerificar.disabled = true;
+                btnVerificar.style.opacity = '0.55';
+                btnVerificar.style.cursor = 'not-allowed';
+            } else {
+                txt.textContent = 'Revisá tu Gmail y completá el acceso para continuar con tu compra.';
+                inputCodigo.disabled = false;
+                btnVerificar.disabled = false;
+                btnVerificar.style.opacity = '1';
+                btnVerificar.style.cursor = 'pointer';
+            }
+        }
+
+        function abrirModalConfirmacion({ title, message, detail, confirmText = "Confirmar", cancelText = "Revisar" }) {
+            return new Promise((resolve) => {
+                const overlay = document.getElementById('confirm-overlay');
+                const titleEl = document.getElementById('confirm-title');
+                const messageEl = document.getElementById('confirm-message');
+                const detailEl = document.getElementById('confirm-detail');
+                const btnCancel = document.getElementById('confirm-cancel');
+                const btnAccept = document.getElementById('confirm-accept');
+
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                detailEl.textContent = detail;
+                btnAccept.textContent = confirmText;
+                btnCancel.textContent = cancelText;
+                modalConfirmacionAbierto = true;
+                modalConfirmacionListoTeclado = false;
+                overlay.classList.add('active');
+                btnAccept.focus();
+                setTimeout(() => { modalConfirmacionListoTeclado = true; }, 180);
+
+                const cleanup = (result) => {
+                    overlay.classList.remove('active');
+                    modalConfirmacionAbierto = false;
+                    modalConfirmacionListoTeclado = false;
+                    btnAccept.onclick = null;
+                    btnCancel.onclick = null;
+                    document.onkeydown = null;
+                    resolve(result);
+                };
+
+                btnAccept.onclick = () => cleanup(true);
+                btnCancel.onclick = () => cleanup(false);
+                document.onkeydown = (event) => {
+                    if (!modalConfirmacionAbierto || !modalConfirmacionListoTeclado) return;
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        btnAccept.click();
+                    } else if (event.key === 'Escape') {
+                        event.preventDefault();
+                        btnCancel.click();
+                    }
+                };
+            });
+        }
+
+        async function enviarCodigo() {
+            if (enviandoCodigo || modalConfirmacionAbierto) return;
+            const email = document.getElementById('input-email').value.trim().toLowerCase();
+            if(!/^[^\s@]+@gmail\.com$/.test(email)) return alert("Ingresá un Gmail valido.");
+
+            const confirmarEmail = await abrirModalConfirmacion({
+                title: "Confirmá tu correo",
+                message: "Vamos a enviar un código único de acceso a esta cuenta.",
+                detail: email,
+                confirmText: "Sí, enviar código",
+                cancelText: `Editar ${detectarProveedorEmail(email)}`
+            });
+            if (!confirmarEmail) return;
+
+            enviandoCodigo = true;
+            emailVerificado = email;
+            setEstadoEnvioCodigo(true);
+            codigoGenerado = Math.floor(100000 + Math.random() * 900000).toString();
+            
+            // Usamos 'code' para que coincida con tu plantilla {{code}} [8, 9]
+            emailjs.send("service_Cannatek", "template_mtfnp28", { to_email: email, code: codigoGenerado })
+                .then(() => {
+                    registrarEventoCheckout("checkout_code_sent");
+                    setEstadoEnvioCodigo(false);
+                    const txt = document.getElementById('step-code-text');
+                    if (txt && emailVerificado) txt.textContent = `Código enviado a ${emailVerificado}. Revisá tu correo y completá el acceso.`;
+                    document.getElementById('input-codigo').focus();
+                })
+                .catch(err => {
+                    mostrarPasoAuth('email');
+                    alert("Error EmailJS: " + err.text);
+                })
+                .finally(() => { enviandoCodigo = false; });
+        }
+
+        function verificarCodigo() {
+            const codigoIngresado = document.getElementById('input-codigo').value.replace(/\s+/g, '');
+            if(codigoIngresado === codigoGenerado) {
+                registrarEventoCheckout("checkout_verified");
+                document.getElementById('auth-section').style.display = 'none';
+                const content = document.getElementById('main-checkout-content');
+                content.style.display = 'block'; setTimeout(() => content.style.opacity = '1', 50);
+                actualizarPasoCheckout('datos');
+                cargarResumen();
+                actualizarEstadoBotonConfirmar();
+            } else { alert("Código incorrecto."); }
+        }
+
+        function cargarResumen() {
+            const lista = document.getElementById('resumen-lista');
+            if (!carrito.length) {
+                lista.innerHTML = '<p style="color:var(--text-secondary); font-size:14px;">Tu bolsa está vacía. Volvé al catálogo para sumar productos y activar la confirmación.</p><a href="index.html" class="buy-btn" style="display:inline-block; margin-top:12px; text-decoration:none; text-align:center;">Ir al catálogo</a>';
+                document.getElementById('check-total').innerText = '$0';
+                return;
+            }
+            let total = 0;
+            lista.innerHTML = carrito.map(i => {
+                const precio = Number(i.precio) || 0;
+                const cantidad = Number(i.cantidad) || 1;
+                const sub = precio * cantidad; total += sub;
+                return `<div class="resumen-item"><img src="${i.img || 'assets/placeholder.svg'}" class="resumen-item-img" onerror="this.src='assets/placeholder.svg'"><div class="resumen-item-info"><p class="resumen-item-name"><strong>${cantidad}x</strong> ${i.marca || 'Producto'}</p><p class="resumen-item-flavor">${i.sabor || 'Unico'}</p></div><span class="resumen-item-price">$${sub.toLocaleString('es-AR')}</span></div>`;
+            }).join('');
+            document.getElementById('check-total').innerText = `$${total.toLocaleString('es-AR')}`;
+        }
+
+        function verificarPago(v) { if(v === 'Transferencia') document.getElementById('modal-transfer').classList.add('active'); }
+        function copiarCBU() {
+            navigator.clipboard.writeText("0000003100012345678901")
+                .then(() => alert("CBU copiado."))
+                .catch(() => alert("No se pudo copiar automaticamente. Copialo manualmente."));
+        }
+
+        async function confirmarPedidoFinal() {
+            if (!carrito.length) return alert("Tu bolsa esta vacia.");
+            const c = {
+                nombre: document.getElementById('c-nombre').value.trim(),
+                localidad: document.getElementById('c-localidad').value,
+                vivienda: document.getElementById('c-vivienda').value,
+                dir: document.getElementById('c-direccion').value.trim(),
+                entre: document.getElementById('c-entre-calles').value.trim(),
+                depto: document.getElementById('c-depto').value.trim(),
+                pago: document.getElementById('c-metodo').value
+            };
+            if(c.nombre.length < 3) return alert("Ingresa un nombre valido.");
+            if(modalidadEntrega === 'envio' && c.dir.length < 5) return alert("Ingresa una direccion valida.");
+
+            const idPedido = generarIdPedido();
+            const fechaPedido = formatoFechaPedido();
+            localStorage.setItem('last_order_id', idPedido);
+
+            const detalleDatos = [
+                emailVerificado ? `Correo verificado: ${emailVerificado}` : "",
+                `Modalidad: ${modalidadEntrega === 'envio' ? 'Envio a domicilio' : 'Retiro en Punto Publico (SM)'}`,
+                `Nombre: ${c.nombre}`,
+                modalidadEntrega === 'envio' ? `Zona: ${c.localidad}` : "",
+                modalidadEntrega === 'envio' ? `Vivienda: ${c.vivienda}` : "",
+                modalidadEntrega === 'envio' ? `Dirección: ${c.dir}` : "",
+                modalidadEntrega === 'envio' && c.entre ? `Entre calles: ${c.entre}` : "",
+                modalidadEntrega === 'envio' && c.depto ? `Piso/Depto: ${c.depto}` : "",
+                `Pago: ${c.pago}`
+            ].filter(Boolean).join('\n');
+
+            const confirmarDatos = await abrirModalConfirmacion({
+                title: "Confirmá tus datos de entrega",
+                message: "Verificá que todo esté correcto antes de enviar el pedido por WhatsApp.",
+                detail: detalleDatos,
+                confirmText: "Datos correctos",
+                cancelText: "Quiero corregir"
+            });
+            if (!confirmarDatos) return;
+
+            actualizarPasoCheckout('confirmacion');
+            let msg = "";
+            if (modalidadEntrega === 'envio') {
+                msg += `*CLIENTE VERIFICADO | ORDEN LOGISTICA*\n`;
+                msg += `*ID:* ${idPedido}\n`;
+                msg += `*Fecha:* ${fechaPedido}\n\n`;
+                msg += `*DATOS CLIENTE*\n`;
+                msg += `Nombre: ${c.nombre}\n`;
+                if (emailVerificado) msg += `Correo verificado: ${emailVerificado}\n`;
+                msg += `Zona: ${c.localidad}\n`;
+                msg += `Direccion: ${c.dir}\n`;
+                if (c.entre) msg += `Referencia: ${c.entre}\n`;
+                if (c.depto) msg += `Piso/Depto: ${c.depto}\n`;
+                msg += `\n*PAGO*\nMetodo: ${c.pago}\n`;
+                msg += `Estado pago: ${c.pago === 'Transferencia' ? 'Pendiente validacion' : 'A cobrar en entrega'}\n\n`;
+                msg += `*PRODUCTOS*\n`;
+                carrito.forEach(i => {
+                    const cantidad = Number(i.cantidad) || 1;
+                    const marca = i.marca || 'Producto';
+                    const sabor = i.sabor || 'Unico';
+                    msg += `- ${marca} | ${sabor} | x${cantidad}\n`;
+                });
+                msg += `\n*TOTAL:* ${document.getElementById('check-total').innerText}`;
+            } else {
+                msg += `*CANNATEK | CLIENTE VERIFICADO*\n`;
+                msg += `*ID de pedido:* ${idPedido}\n`;
+                msg += `*Fecha:* ${fechaPedido}\n\n`;
+                msg += `*Resumen cliente*\n`;
+                msg += `- Nombre: ${c.nombre}\n`;
+                if (emailVerificado) msg += `- Correo verificado: ${emailVerificado}\n`;
+                msg += `- Modalidad: Retiro en Punto Publico (San Miguel Centro)\n`;
+                msg += `- Direccion de retiro: se comparte por este chat\n\n`;
+                msg += `*Resumen compra*\n`;
+                carrito.forEach(i => {
+                    const cantidad = Number(i.cantidad) || 1;
+                    const marca = i.marca || 'Producto';
+                    const sabor = i.sabor || 'Unico';
+                    msg += `- ${cantidad}x ${marca} (${sabor})\n`;
+                });
+                msg += `- Total: ${document.getElementById('check-total').innerText}\n\n`;
+                msg += `Pago: ${c.pago}\n`;
+                msg += `Estado actual: Cliente verificado`;
+            }
+
+            registrarEventoCheckout("whatsapp_click", { pago: c.pago, total: document.getElementById('check-total').innerText });
+            window.open(`https://wa.me/${WS_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function seleccionarModalidadEntrega(tipo) {
+            modalidadEntrega = tipo === 'retiro' ? 'retiro' : 'envio';
+            const envioBtn = document.getElementById('delivery-envio');
+            const retiroBtn = document.getElementById('delivery-retiro');
+            const bloqueEnvio = document.getElementById('bloque-envio');
+            const bloqueRetiro = document.getElementById('bloque-retiro');
+            if (!envioBtn || !retiroBtn || !bloqueEnvio || !bloqueRetiro) return;
+
+            const esEnvio = modalidadEntrega === 'envio';
+            envioBtn.classList.toggle('active', esEnvio);
+            retiroBtn.classList.toggle('active', !esEnvio);
+            bloqueEnvio.classList.toggle('delivery-hidden', !esEnvio);
+            bloqueRetiro.classList.toggle('delivery-hidden', esEnvio);
+            actualizarEstadoBotonConfirmar();
+        }
+
+        function actualizarPasoCheckout(pasoActivo) {
+            checkoutPasoActual = pasoActivo;
+            const estilos = {
+                activo: "padding:8px 14px; border-radius:999px; border:0.5px solid var(--accent-color); color:#fff; font-size:12px; background:rgba(0,255,95,0.15);",
+                inactivo: "padding:8px 14px; border-radius:999px; border:0.5px solid var(--border-color); color:var(--text-secondary); font-size:12px; background:transparent;"
+            };
+            document.getElementById('step-pill-verificacion').style.cssText = pasoActivo === 'verificacion' ? estilos.activo : estilos.inactivo;
+            document.getElementById('step-pill-datos').style.cssText = pasoActivo === 'datos' ? estilos.activo : estilos.inactivo;
+            document.getElementById('step-pill-confirmacion').style.cssText = pasoActivo === 'confirmacion' ? estilos.activo : estilos.inactivo;
+        }
+
+        function validarDatosMinimos() {
+            const nombre = document.getElementById('c-nombre').value.trim();
+            const direccion = document.getElementById('c-direccion').value.trim();
+            if (modalidadEntrega === 'retiro') return nombre.length >= 3 && carrito.length > 0;
+            return nombre.length >= 3 && direccion.length >= 5 && carrito.length > 0;
+        }
+
+        function actualizarEstadoBotonConfirmar() {
+            const btn = document.getElementById('btn-confirmar-pedido');
+            const feedback = document.getElementById('checkout-feedback');
+            const habilitado = validarDatosMinimos();
+            btn.disabled = !habilitado;
+            btn.style.opacity = habilitado ? '1' : '0.55';
+            btn.style.cursor = habilitado ? 'pointer' : 'not-allowed';
+            btn.textContent = habilitado ? textoCtaHabilitado() : 'Completá tus datos para confirmar';
+            if (feedback) {
+                if (!carrito.length) {
+                    feedback.textContent = 'Tu bolsa está vacía. Agregá productos para continuar.';
+                } else if (document.getElementById('c-nombre').value.trim().length < 3) {
+                    feedback.textContent = 'Escribí un nombre válido para habilitar la confirmación.';
+                } else if (modalidadEntrega === 'envio' && document.getElementById('c-direccion').value.trim().length < 5) {
+                    feedback.textContent = 'Completá una dirección válida para habilitar la confirmación.';
+                } else {
+                    feedback.textContent = modalidadEntrega === 'envio'
+                        ? 'Todo listo para envío. Confirmá por WhatsApp y coordinamos entrega express.'
+                        : 'Todo listo para retiro. Confirmá por WhatsApp y te compartimos el punto exacto.';
+                }
+            }
+            if (checkoutPasoActual !== 'confirmacion') actualizarPasoCheckout('datos');
+        }
+
+        function ejecutarAutochequeoCheckout() {
+            const checks = [
+                { check: "Carrito estructurado", ok: Array.isArray(carrito) },
+                { check: "WS_NUMBER definido", ok: typeof WS_NUMBER === "string" && WS_NUMBER.length > 5 },
+                { check: "Boton confirmar existe", ok: !!document.getElementById('btn-confirmar-pedido') },
+                { check: "Feedback existe", ok: !!document.getElementById('checkout-feedback') },
+                { check: "Variante CTA aplicada", ok: ctaVariant === "control" || ctaVariant === "urgencia" }
+            ];
+            console.table(checks);
+            const errores = checks.filter(c => !c.ok).length;
+            console.info(errores ? "[checkout-selfcheck] revisar items con false" : "[checkout-selfcheck] OK");
+            return checks;
+        }
+
+        ['c-nombre', 'c-direccion', 'c-localidad', 'c-vivienda', 'c-metodo'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', actualizarEstadoBotonConfirmar);
+            if (el) el.addEventListener('change', actualizarEstadoBotonConfirmar);
+        });
+
+        document.getElementById('input-email').addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                if (modalConfirmacionAbierto) return;
+                enviarCodigo();
+            }
+        });
+        document.getElementById('input-codigo').addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                if (modalConfirmacionAbierto) return;
+                verificarCodigo();
+            }
+        });
+
+        actualizarPasoCheckout('verificacion');
+        seleccionarModalidadEntrega('envio');
+        registrarEventoCheckout("checkout_open", { cartItems: carrito.length });
+        aplicarVarianteCta();
+        window.ejecutarAutochequeoCheckout = ejecutarAutochequeoCheckout;
+    </script>
+</body>
+</html>
